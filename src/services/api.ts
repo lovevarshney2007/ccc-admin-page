@@ -56,6 +56,7 @@ export interface Registration {
   name: string;
   email: string;
   phone?: string;
+  gender?: string;
   studentNumber: string;
   college?: string;
   year?: string;

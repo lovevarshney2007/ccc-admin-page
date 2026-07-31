@@ -17,6 +17,7 @@ const CHECKS_STORAGE_KEY = 'ccc_admin_user_checks';
 const UsersPage = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
+  const [showGirlsHostellers, setShowGirlsHostellers] = useState(false);
   const queryClient = useQueryClient();
   
   const [checkedMap, setCheckedMap] = useState<Record<string, boolean>>(() => {
@@ -67,13 +68,19 @@ const UsersPage = () => {
   const filtered = (registrations ?? []).filter((r) => {
     const q = search.toLowerCase();
     const branch = r.branch || r.department || '';
-    return (
+    const matchesSearch = (
       r.name?.toLowerCase().includes(q) ||
       r.email?.toLowerCase().includes(q) ||
       r.studentNumber?.toLowerCase().includes(q) ||
       r.phone?.includes(q) ||
       branch.toLowerCase().includes(q)
     );
+    
+    if (showGirlsHostellers) {
+      return matchesSearch && r.gender === 'Female' && r.residence === 'Hosteller';
+    }
+    
+    return matchesSearch;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -86,12 +93,12 @@ const UsersPage = () => {
   };
 
   const exportCSV = () => {
-    const headers = ['S.No', 'Selected', 'Payment Verified', 'Name', 'Email', 'Phone', 'Student Number', 'Branch', 'Residence', 'Day 1', 'Day 2', 'Transaction ID'];
+    const headers = ['S.No', 'Selected', 'Payment Verified', 'Name', 'Email', 'Phone', 'Student Number', 'Gender', 'Branch', 'Residence', 'Day 1', 'Day 2', 'Transaction ID'];
     const rows = filtered.map((r, index) => [
       index + 1,
       checkedMap[r.studentNumber] ? 'YES' : 'NO',
       r.isVerified !== false ? 'Verified' : 'Pending',
-      r.name, r.email, r.phone || '', r.studentNumber, r.branch || r.department || '', r.residence || 'Hosteller',
+      r.name, r.email, r.phone || '', r.studentNumber, r.gender || '', r.branch || r.department || '', r.residence || 'Hosteller',
       (r.day1Present || r.isPresentDay1) ? 'Present' : 'Absent',
       (r.day2Present || r.isPresentDay2) ? 'Present' : 'Absent',
       r.transactionId || ''
@@ -122,7 +129,14 @@ const UsersPage = () => {
             className="pl-9 bg-background/80"
           />
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+          <Button 
+            variant={showGirlsHostellers ? "default" : "outline"} 
+            onClick={() => { setShowGirlsHostellers(!showGirlsHostellers); setPage(0); }} 
+            className={`gap-2 flex-1 sm:flex-none ${showGirlsHostellers ? 'bg-pink-500 hover:bg-pink-600 border-pink-500 text-white' : 'border-pink-500/30 hover:bg-pink-500/10 hover:text-pink-400'}`}
+          >
+            Girls Hostellers
+          </Button>
           <Button variant="outline" onClick={exportCSV} className="gap-2 flex-1 sm:flex-none border-cyan-500/30 hover:bg-cyan-500/10 hover:text-cyan-400">
             <Download className="w-4 h-4" />
             Export CSV ({filtered.length})
