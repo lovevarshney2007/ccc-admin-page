@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Leave empty to use the current origin, requests will be proxied by Vite (in dev) or Nginx (in prod)
+const BASE_URL = '';
 const STORAGE_KEY = 'ccc_admin_api_key';
 
 const api = axios.create({
