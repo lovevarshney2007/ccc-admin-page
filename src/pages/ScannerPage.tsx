@@ -39,7 +39,11 @@ const ScannerPage = () => {
       queryClient.invalidateQueries({ queryKey: ['registrations'] });
     },
     onError: (err: any, vars) => {
-      const msg = err?.response?.data?.message || 'Failed to mark attendance';
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to mark attendance';
+      console.error('[Attendance Error]', err?.response?.data || err);
       const result: ScanResult = {
         studentNumber: vars.studentNumber,
         success: false,
