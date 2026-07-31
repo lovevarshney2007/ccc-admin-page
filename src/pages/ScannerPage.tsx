@@ -22,7 +22,13 @@ const ScannerPage = () => {
   const [manualInput, setManualInput] = useState('');
   const [history, setHistory] = useState<ScanResult[]>([]);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const lastScannedRef = useRef<{ code: string; time: number } | null>(null);
+  const dayRef = useRef<1 | 2>(day);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    dayRef.current = day;
+  }, [day]);
 
   const mutation = useMutation({
     mutationFn: ({ studentNumber, d }: { studentNumber: string; d: 1 | 2 }) =>
@@ -59,10 +65,19 @@ const ScannerPage = () => {
     (decodedText: string) => {
       const studentNumber = decodedText.trim();
       if (!studentNumber) return;
-      if (history.length > 0 && history[0].studentNumber === studentNumber) return;
-      mutation.mutate({ studentNumber, d: day });
+      
+      const now = Date.now();
+      const lastScanned = lastScannedRef.current;
+      
+      // If same code scanned within last 3 seconds, ignore it to prevent spam
+      if (lastScanned && lastScanned.code === studentNumber && (now - lastScanned.time < 3000)) {
+        return;
+      }
+      
+      lastScannedRef.current = { code: studentNumber, time: now };
+      mutation.mutate({ studentNumber, d: dayRef.current });
     },
-    [day, history, mutation]
+    [mutation]
   );
 
   const startScanner = async () => {
